@@ -7,7 +7,6 @@ const app = express()
 
 app.use(rotas)
 
-
 app.listen(3000)
 
 

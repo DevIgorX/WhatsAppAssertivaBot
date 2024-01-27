@@ -1,8 +1,5 @@
 import {Request , Response} from 'express'
-import criarInstanciaComToken from '../axios'
-
-
-
+import criarInstanciaComToken from '../Api/axios'
 
 export const consultar_cpf = async (req: Request, res: Response)=>{
     const {cpf, idFinalidade} = req.query

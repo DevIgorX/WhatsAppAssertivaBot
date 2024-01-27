@@ -4,7 +4,7 @@ dotenv.config()
 
 
 
-export const obtertokenDeAcesso = async () => {
+export const obtertokenDeAcesso = async ():Promise<string> => {
     try {
         const response = await axios.post('https://api.assertivasolucoes.com.br/oauth2/v3/token',
             {
@@ -36,12 +36,4 @@ export const obtertokenDeAcesso = async () => {
     }
 }
 
-// (async () => {
-//     try {
-//       const token = await obtertokenDeAcesso();
-//       console.log(token);
-//     } catch (error) {
-//       console.error('Erro ao obter token de acesso: 500');
-//     }
-//   })();
 
