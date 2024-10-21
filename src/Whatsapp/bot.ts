@@ -1,5 +1,6 @@
 
-import { create, Whatsapp } from 'venom-bot'
+import { create } from 'venom-bot'
+import criarInstanciaComToken from '../Api/axios';
 
 
 export const startBot = () => {
@@ -13,46 +14,84 @@ export const startBot = () => {
 
 
 // Objeto para armazenar o estado atual de cada usuário //objeto com chave-valor
-const userState: { [key: string]: string } = {};
+
+const usuarioEstdo: {[chave: string]: string}= {}
 
 function start(client: any) {
     client.onMessage((message: any) => {
         // Verifica se a mensagem não está vazia e não é de um grupo
         if (message.body != "" && message.isGroupMsg === false) {
             
-            // Pega o estado atual do usuário, se existir
-            const currentState = userState[message.from] || 'inicial'; //se caso o valor dentro de userState for underfined será atribuido 'initial'
+            //pega o estado atual do usuario, se existir
 
-            if (currentState === 'inicial') {
-                // Estado inicial: Pergunta como o usuário quer ser ajudado
+            const estadoAtual = usuarioEstdo[message.from] || 'inicial'
+
+
+            if(estadoAtual === 'inicial'){
+                //Estado inicial: Pergunta comoo usuário quer ser ajudado
                 client.sendText(message.from, `Olá, como posso te ajudar hoje?\n 1 - Mais contatos? \n 2 - Endereços`);
-                // Atualiza o estado do usuário
-                userState[message.from] = 'awaiting_option';
-            } 
-            else if (currentState === 'awaiting_option') {
-                // O bot está aguardando uma resposta da primeira pergunta
-                if (message.body === '1') {
-                    client.sendText(message.from, 'Por favor, digite o CPF:');
-                    // Atualiza o estado para esperar o CPF
-                    userState[message.from] = 'awaiting_cpf';
-                } else if (message.body === '2') {
-                    client.sendText(message.from, 'Segue Endereço: Rua 3, Setor São José');
-                    // Volta o estado para 'inicial' depois de completar a ação
-                    userState[message.from] = 'inicial';
-                } else {
-                    // Se o usuário não digitou uma opção válida
-                    client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2.');
-                }
-            } 
-            else if (currentState === 'awaiting_cpf') {
-                // O bot está aguardando o CPF
-                client.sendText(message.from, `CPF recebido: ${message.body}`);
-                // Aqui você pode processar o CPF e fazer o que for necessário com ele
-                console.log(`CPF do usuário: ${message.body}`);
+                //atualiza o estado do usuario
 
-                // Depois de capturar o CPF, volte o estado para 'initial'
-                userState[message.from] = 'inicial';
+                usuarioEstdo[message.from] = 'aguardando_opção'
+            }else if(estadoAtual === 'aguardando_opção'){
+                //bot está aguardando uma resposta da primeira pergunta 
+                if(message.body === '1'){
+                    client.sendText(message.from,'Por favor digite o seu CPF')
+                    //Atualiza o estado para aguardando o CPF
+                    usuarioEstdo[message.from] =  'aguardando_cpf'
+                }else if(message.body === '2'){
+                    client.sendText(message.from, 'Segue endereço: \n Rua 3, Setor São josé')
+                    //volta o estado para inicial depois de completar a ação
+                    usuarioEstdo[message.from] = 'inicial'
+                }else {
+                    //se o usuário não digitar uma opção válida
+                    client.sendText('Por favor ,escolha uma opção válida: 1 ou 2')
+                }
+            }else if(estadoAtual === 'aguardando_cpf'){
+
+
+
+                const consulta_telefone = async (cpf) => {
+                
+                        const instancia = await criarInstanciaComToken()
+                
+                        const { data } = await instancia.get(`/localize/v3/cpf?cpf=${cpf}&idFinalidade=1`)
+                
+                        const { resposta: { telefones: { moveis, fixos } } } = data
+                
+                
+                        const contatosMoveis = moveis.map((movel: any) => {
+                            return movel.numero
+                        })
+                
+                        const contatosFixos = fixos.map((movel: any) => {
+                            return movel.numero
+                        })
+                
+                
+                        const todosContatos = [...contatosMoveis, ...contatosFixos]
+                
+                
+                        return todosContatos
+                
+                
+                };
+
+                consulta_telefone(message.body).then((contatos)=>{
+                     const contatosFormatados = contatos.join('\n'); // formata a lista de contatos em multiplas linhas
+                     client.sendText(message.from, `Segue contatos:\n${contatosFormatados}`)
+                     //volta ao estado para inicial 
+                     usuarioEstdo[message.from] = 'inicial'
+                }).catch((erro)=>{
+                    console.log('Erro ao consultar o telefone:', erro)
+                    client.sendText(message.from, 'Desculpe, não conseguimos processar seu CPF no momento.')
+                    usuarioEstdo[message.from] = 'inicial'
+                })
+
             }
+
+
+           
         }
     });
 }
