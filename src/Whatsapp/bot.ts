@@ -1,6 +1,6 @@
 
 import { create } from 'venom-bot'
-import criarInstanciaComToken from '../Api/axios';
+import { consulta_telefone } from './controladores';
 
 
 export const startBot = () => {
@@ -48,34 +48,6 @@ function start(client: any) {
                     client.sendText('Por favor ,escolha uma opção válida: 1 ou 2')
                 }
             }else if(estadoAtual === 'aguardando_cpf'){
-
-
-
-                const consulta_telefone = async (cpf) => {
-                
-                        const instancia = await criarInstanciaComToken()
-                
-                        const { data } = await instancia.get(`/localize/v3/cpf?cpf=${cpf}&idFinalidade=1`)
-                
-                        const { resposta: { telefones: { moveis, fixos } } } = data
-                
-                
-                        const contatosMoveis = moveis.map((movel: any) => {
-                            return movel.numero
-                        })
-                
-                        const contatosFixos = fixos.map((movel: any) => {
-                            return movel.numero
-                        })
-                
-                
-                        const todosContatos = [...contatosMoveis, ...contatosFixos]
-                
-                
-                        return todosContatos
-                
-                
-                };
 
                 consulta_telefone(message.body).then((contatos)=>{
                      const contatosFormatados = contatos.join('\n'); // formata a lista de contatos em multiplas linhas
