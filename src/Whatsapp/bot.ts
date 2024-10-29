@@ -50,16 +50,16 @@ function start(client: any) {
                 if (message.body === '1') {
                     await client.sendText(message.from, 'Por favor digite o seu CPF')
                     //Atualiza o estado para aguardando o CPF
-                    usuarioEstdo[message.from] = 'aguardando_cpf'
+                    usuarioEstdo[message.from] = 'aguardando_cpf_contatos'
                 } else if (message.body === '2') {
-                    await client.sendText(message.from, 'Segue endereço: \n Rua 3, Setor São josé')
-                    //volta o estado para inicial depois de completar a ação
-                    usuarioEstdo[message.from] = 'inicial'
+                    await client.sendText(message.from, 'Por favor digite o seu CPF')
+                    usuarioEstdo[message.from] = 'aguardando_cpf_endereco'
+                    
                 } else {
                     //se o usuário não digitar uma opção válida
                     await client.sendText('Por favor ,escolha uma opção válida: 1 ou 2')
                 }
-            } else if (estadoAtual === 'aguardando_cpf') {
+            } else if (estadoAtual === 'aguardando_cpf_contatos') {
 
                 try {
 
