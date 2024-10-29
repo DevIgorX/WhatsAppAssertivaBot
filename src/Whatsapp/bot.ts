@@ -1,16 +1,7 @@
 
 import { create } from 'venom-bot'
-import { consulta_telefone } from './controladores';
+import { consultar_endereco, consulta_telefone } from './controladores';
 
-
-//export const startBot = () => {
-//create({ session: 'Whataspp-bot' }).then((client) => {
-//   start(client)
-
-// }).catch((erro: any) => {
-// console.log(erro)
-//});
-//}
 
 export const startBot = async () => {
     try {
@@ -23,7 +14,6 @@ export const startBot = async () => {
         console.log(error)
     }
 }
-
 
 // Objeto para armazenar o estado atual de cada usuário //objeto com chave-valor
 
@@ -38,10 +28,9 @@ function start(client: any) {
 
             const estadoAtual = usuarioEstdo[message.from] || 'inicial'
 
-
             if (estadoAtual === 'inicial') {
                 //Estado inicial: Pergunta comoo usuário quer ser ajudado
-                await client.sendText(message.from, `Olá, como posso te ajudar hoje?\n 1 - Mais contatos? \n 2 - Endereços`);
+                await client.sendText(message.from, `Olá, ${message.notifyName}, como posso te ajudar hoje?\n 1 - Mais contatos? \n 2 - Endereços`);
                 //atualiza o estado do usuario
 
                 usuarioEstdo[message.from] = 'aguardando_opção'
@@ -54,7 +43,7 @@ function start(client: any) {
                 } else if (message.body === '2') {
                     await client.sendText(message.from, 'Por favor digite o seu CPF')
                     usuarioEstdo[message.from] = 'aguardando_cpf_endereco'
-                    
+
                 } else {
                     //se o usuário não digitar uma opção válida
                     await client.sendText('Por favor ,escolha uma opção válida: 1 ou 2')
@@ -63,14 +52,6 @@ function start(client: any) {
 
                 try {
 
-                    //consulta_telefone(message.body).then((contatos)=>{
-                    //const contatosFormatados = contatos.join('\n'); // formata a lista de contatos em multiplas linhas
-                    //client.sendText(message.from, `Segue contatos:\n${contatosFormatados}`)
-                    //volta ao estado para inicial 
-                    //usuarioEstdo[message.from] = 'inicial'
-                    //})
-
-
                     const contatos = await consulta_telefone(message.body)
 
                     const contatosFormatados = contatos.join('\n') //retorna uma string unica usando uma nova linha como separador dos contatos
@@ -78,6 +59,30 @@ function start(client: any) {
                     await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}`)
                     usuarioEstdo[message.from] = 'inicial'
 
+                } catch (error) {
+                    console.log('Erro ao consultar o telefone:', error)
+                    client.sendText(message.from, 'Desculpe, não conseguimos processar seu CPF no momento.')
+                    usuarioEstdo[message.from] = 'inicial'
+                }
+            } else if (estadoAtual === 'aguardando_cpf_endereco') {
+
+                try {
+
+                    const enderecos = await consultar_endereco(message.body)
+                    //verifica se o retorno é uma string de erro
+                    if (typeof enderecos === 'string') {
+                        await client.sendText(message.from, enderecos)
+                    } else {
+                        //formata o endereço em uma string legível para o usuario
+
+                        const enderecoFormatado = enderecos.join('\n')
+
+
+                        await client.sendText(message.from, `Segue Endereço:\n${enderecoFormatado}`)
+
+                    }
+
+                    usuarioEstdo[message.from] = 'inicial'
 
 
                 } catch (error) {
@@ -85,6 +90,7 @@ function start(client: any) {
                     client.sendText(message.from, 'Desculpe, não conseguimos processar seu CPF no momento.')
                     usuarioEstdo[message.from] = 'inicial'
                 }
+
             }
 
 
