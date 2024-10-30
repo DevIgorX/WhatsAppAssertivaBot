@@ -58,8 +58,12 @@ export const consultar_endereco = async (cpf) =>{
         
     } catch (error) {
         console.log(error)
-        return 'Erro interno do servidor'
+        return 'Desculpe, não conseguimos processar seu CPF no momento.'
     }
 
 
 }
+
+
+
+
