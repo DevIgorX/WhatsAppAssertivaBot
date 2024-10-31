@@ -8,7 +8,7 @@ export const consulta_telefone = async (cpf) => {
 
     const { resposta: { telefones: { moveis, fixos } } } = data
 
-
+    //transforma cada item do array em outro array contendo o resultado dessa transformação
     const contatosMoveis = moveis.map((movel: any) => {
         return movel.numero
     })

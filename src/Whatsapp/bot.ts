@@ -68,8 +68,8 @@ function start(client: any) {
                     usuarioEstdo[message.from] = 'inicial'
 
                 } catch (error) {
-                    console.log('Erro ao consultar o telefone:', error)
-                    client.sendText(message.from, 'Desculpe, não conseguimos processar seu CPF no momento.')
+                    console.log('Erro ao consultar o telefone:', error.message)
+                    client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
                     usuarioEstdo[message.from] = 'inicial'
                 }
             } else if (estadoAtual === 'aguardando_cpf_endereco') {
@@ -102,7 +102,7 @@ function start(client: any) {
 
                 } catch (error) {
                     console.log('Erro ao consultar o telefone:', error)
-                    client.sendText(message.from, 'Desculpe, não conseguimos processar seu CPF no momento.')
+                    client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
                     usuarioEstdo[message.from] = 'inicial'
                 }
 

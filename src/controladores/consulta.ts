@@ -16,7 +16,7 @@ export const consultar_cpf = async (req: Request, res: Response) => {
 
 
     } catch (error) {
-        return res.status(500).json({ mensagem: 'Erro interno do servidor' })
+        return res.status(500).json( {mesagem: error})
         throw error
     }
 }
