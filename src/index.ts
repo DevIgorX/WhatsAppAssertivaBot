@@ -10,7 +10,7 @@ const app = express()
 
 app.use(rotas)
 
-startBot()
+//startBot()
 
 app.listen(3000)
 

@@ -39,12 +39,14 @@ export const consultar_endereco = async (cpf) =>{
 
         const {resposta: {dadosCadastrais:{nome}}} = data
 
-        const { complemento, bairro, numero, cidade, uf , cep} = data.resposta.enderecos[0]
+        const { tipoLogradouro, logradouro, complemento, bairro, numero, cidade, uf , cep} = data.resposta.enderecos[0]
 
 
         const endereco_completo = [
-            { chave: "Nome do cliente:", valor: nome },
-            { chave: "Endereço: ", valor: complemento },
+           
+            { chave: "Nome do cliente: ", valor: nome },
+            {chave: "Endereço: ",valor: `${tipoLogradouro} ${logradouro}`},
+            { chave: "Complemento: ", valor: complemento },
             { chave: "bairro: ", valor: bairro },
             { chave: "numero: ", valor: numero },
             { chave: "cidade: ", valor: cidade },
