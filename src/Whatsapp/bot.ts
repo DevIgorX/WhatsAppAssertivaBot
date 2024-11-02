@@ -1,6 +1,6 @@
 
 import { create } from 'venom-bot'
-import { consultar_endereco, consulta_telefone } from './controladores';
+import { consultar_endereco, consulta_telefone, contatos_Relacionados } from './controladores';
 
 
 export const startBot = async () => {
@@ -21,10 +21,13 @@ const usuarioEstdo: { [chave: string]: string } = {}
 
 function start(client: any) {
     client.onMessage(async (message: any) => {
+
         // Verifica se a mensagem não está vazia e não é de um grupo
         if (message.body != "" && message.isGroupMsg === false) {
 
+            let cpf_consulta = ''
             //pega o estado atual do usuario, se existir
+
 
             const estadoAtual = usuarioEstdo[message.from] || 'inicial'
 
@@ -51,12 +54,15 @@ function start(client: any) {
                 }
             } else if (estadoAtual === 'aguardando_cpf_contatos') {
                 // Remove caracteres não numéricos do CPF
-                const cpf = message.body.replace(/\D/g, '');
-
-                if (!/^\d{11}$/.test(cpf)) {
+                const cpf_do_cliente = message.body.replace(/\D/g, '');
+                //expressão regular para validar o CPF
+                if (!/^\d{11}$/.test(cpf_do_cliente)) {
                     await client.sendText(message.from, 'CPF inválido. Por favor, insira um CPF válido com 11 dígitos.');
                     return; // Sai da função para que o usuário possa tentar novamente
                 }
+
+                cpf_consulta = message.body
+
 
                 try {
 
@@ -64,8 +70,10 @@ function start(client: any) {
 
                     const contatosFormatados = contatos.join('\n\n') //retorna uma string unica usando uma nova linha como separador dos contatos
 
-                    await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}`)
-                    usuarioEstdo[message.from] = 'inicial'
+                    await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}\n\n\n Deseja consultar mais contatos? \n **1** - Sim\n**2** - Não`)
+
+
+                    usuarioEstdo[message.from] = 'aguardando_relacionados'
 
                 } catch (error) {
                     console.log('Erro ao consultar o telefone:', error.message)
@@ -106,6 +114,38 @@ function start(client: any) {
                     usuarioEstdo[message.from] = 'inicial'
                 }
 
+            } else if (estadoAtual === 'aguardando_aguardando_relacionados') {
+                if (message.body === '1') {
+                    try {
+                        const contatosRelacionados = await contatos_Relacionados(cpf_consulta)
+
+                        if (!contatosRelacionados) {
+                            await client.sendText(message.from, 'dados inexistentes')
+                        }
+
+                        console.log(contatosRelacionados)
+
+                        await client.sendText(message.from, 'dados recebidos com sucesso!')
+
+                    } catch (error) {
+                        console.log('Erro ao consultar o telefone:', error)
+                        client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
+                        usuarioEstdo[message.from] = 'inicial'
+                    }
+
+
+
+                    //if (typeof contatosRelacionados === 'string') {
+                    //  await client.sendText(message.from, contatosRelacionados)
+                    // } else {
+
+                    //  const contatosRelacionadosFormatados = contatosRelacionados.join('\n')
+                    // }
+
+
+
+
+                }
             }
 
 

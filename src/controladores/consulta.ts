@@ -103,9 +103,9 @@ const ObterProtoco = async (cpf: string): Promise<string | null> => {
 // Função para consulta de contatos relacionados
 export const consulta_contatos_relacionado = async (req: Request, res: Response) => {
 
-    const { tipo, documento, cpf} = req.query; // Pega os parâmetros do request
+    const { tipo, documento, cpf } = req.query; // Pega os parâmetros do request
 
-    if (!tipo || !documento ||!cpf) {
+    if (!tipo || !documento || !cpf) {
         return res.status(400).json({ mensagem: 'Paramentros tipo, documento e cpf são obrigatório obrigatórios' })
     }
 
@@ -130,14 +130,32 @@ export const consulta_contatos_relacionado = async (req: Request, res: Response)
         });
 
         // Extrai os telefones do resultado da API, se existirem
-        const { resposta: { maisTelefones } } = data;
+        //const { resposta: { maisTelefones } } = data;
 
-        if (!maisTelefones) {
-            return res.status(404).json({ mensagem: 'Nenhum telefone relacionado encontrado para o CPF informado.' });
-        }
+        // if (!maisTelefones) {
+        //return res.status(404).json({ mensagem: 'Nenhum telefone relacionado encontrado para o CPF informado.' });
+        // }
 
         // Retorna os dados dos telefones encontrados
-        return res.status(200).json(maisTelefones);
+        //return res.status(200).json(maisTelefones);
+
+        const { resposta: { maisTelefones: { fixos, moveis } } } = data
+
+
+        const contatosFixos = fixos.map((fixo: any) => {
+            return fixo.numero
+        })
+
+        const contatosMoveis = moveis.map((moveis: any) => {
+            return moveis.numero
+        })
+
+        const todosContatos = [...contatosMoveis, ...contatosFixos]
+
+
+        return res.status(200).json(todosContatos)
+
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({ mensagem: 'Erro interno do Servidor' });

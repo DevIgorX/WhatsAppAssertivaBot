@@ -70,7 +70,7 @@ export const consultar_endereco = async (cpf) =>{
 
 
 // Função para consulta de contatos relacionados
-export const consulta_contatos_relacionado = async (cpf) => {
+export const contatos_Relacionados = async (cpf) => {
 
     try {
 
@@ -91,18 +91,31 @@ export const consulta_contatos_relacionado = async (cpf) => {
             }
         });
 
-        // Extrai os telefones do resultado da API, se existirem
-        const { resposta: { maisTelefones } } = data;
-
-        if (!maisTelefones) {
+        if (!data.resposta.maisTelefones) {
             return { mensagem: 'Nenhum telefone relacionado encontrado para o CPF informado.' };
         }
 
+
+        // Extrai os telefones do resultado da API, se existirem
+        const { resposta: { maisTelefones: {fixos, moveis} } } = data;
+
+        const contatosFixos  = fixos.map((fixo:any)=>{
+            return fixo.numero
+        })
+
+        const contatosMoveis = moveis.map((movel:any)=>{
+            return movel.numero
+        })
+
+        const todosContatos = [...contatosMoveis , ...contatosFixos]
+    
         // Retorna os dados dos telefones encontrados
-        return maisTelefones
+
+        return todosContatos
+        
     } catch (error) {
         console.log(error);
-        return { mensagem: 'Erro interno do Servidor' }
+       return 'Erro interno do Servidor' 
     }
 };
 
