@@ -62,7 +62,7 @@ function start(client: any) {
 
                     const contatos = await consulta_telefone(message.body)
 
-                    const contatosFormatados = contatos.join('\n') //retorna uma string unica usando uma nova linha como separador dos contatos
+                    const contatosFormatados = contatos.join('\n\n') //retorna uma string unica usando uma nova linha como separador dos contatos
 
                     await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}`)
                     usuarioEstdo[message.from] = 'inicial'

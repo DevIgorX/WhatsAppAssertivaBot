@@ -7,10 +7,11 @@ dotenv.config()
 export const obtertokenDeAcesso = async ():Promise<string> => {
     try {
         const response = await axios.post('https://api.assertivasolucoes.com.br/oauth2/v3/token',
+             //2 argumento especifica os dados que a API deve processar- identificação do tipo de fluxo, ou seja, fluxo de credenciais do cliente
             {
                 grant_type: 'client_credentials',
             },
-
+            //3 argumento objeto de configuração, cabeçalho e autenticação
             {
                 auth: {
                     username:process.env.CLIENT_ID,

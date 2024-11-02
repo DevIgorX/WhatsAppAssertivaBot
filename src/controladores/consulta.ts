@@ -57,8 +57,6 @@ export const consulta_telefone = async (req: Request, res: Response) => {
 
         const { resposta: { telefones: { moveis, fixos } } } = data
 
-        const { cabecalho: { protocolo } } = data
-
 
         const contatosMoveis = moveis.map((movel: any) => {
             return movel.numero
@@ -73,8 +71,6 @@ export const consulta_telefone = async (req: Request, res: Response) => {
 
 
         return res.status(200).json(todosContatos)
-
-        return protocolo
 
     } catch (error) {
         console.log(error)
@@ -137,7 +133,7 @@ export const consulta_contatos_relacionado = async (req: Request, res: Response)
         const { resposta: { maisTelefones } } = data;
 
         if (!maisTelefones) {
-            return res.status(404).json({ mensagem: 'Nenhum telefone relacionado encontrado para o documento informado.' });
+            return res.status(404).json({ mensagem: 'Nenhum telefone relacionado encontrado para o CPF informado.' });
         }
 
         // Retorna os dados dos telefones encontrados

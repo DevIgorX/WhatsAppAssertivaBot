@@ -1,4 +1,5 @@
 import criarInstanciaComToken from "../Api/axios";
+import { ObterProtoco } from "./funcoesAuxiliares";
 
 export const consulta_telefone = async (cpf) => {
                 
@@ -65,6 +66,45 @@ export const consultar_endereco = async (cpf) =>{
 
 
 }
+
+
+
+// Função para consulta de contatos relacionados
+export const consulta_contatos_relacionado = async (cpf) => {
+
+    try {
+
+        const paramentrosProtocolo = await ObterProtoco(cpf as string)
+
+        if (!paramentrosProtocolo) {
+            return { mensagem: 'Erro ao Obter protocolo' }
+        }
+
+        const instancia = await criarInstanciaComToken();
+
+        // Realiza a consulta com os parâmetros tipo, documento e protocolo
+        const { data } = await instancia.get('/localize/v3/mais-telefones', {
+            params: {
+                tipo:paramentrosProtocolo.tipo,       // CPF ou CNPJ
+                documento: paramentrosProtocolo.documento, // CPF ou CNPJ fornecido pelo usuário
+                protocolo: paramentrosProtocolo.protocolo  // Protocolo da consulta anterior
+            }
+        });
+
+        // Extrai os telefones do resultado da API, se existirem
+        const { resposta: { maisTelefones } } = data;
+
+        if (!maisTelefones) {
+            return { mensagem: 'Nenhum telefone relacionado encontrado para o CPF informado.' };
+        }
+
+        // Retorna os dados dos telefones encontrados
+        return maisTelefones
+    } catch (error) {
+        console.log(error);
+        return { mensagem: 'Erro interno do Servidor' }
+    }
+};
 
 
 
