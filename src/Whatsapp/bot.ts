@@ -20,12 +20,13 @@ export const startBot = async () => {
 const usuarioEstdo: { [chave: string]: string } = {}
 
 function start(client: any) {
+    let cpf_consulta: string
     client.onMessage(async (message: any) => {
 
         // Verifica se a mensagem não está vazia e não é de um grupo
         if (message.body != "" && message.isGroupMsg === false) {
 
-            let cpf_consulta = ''
+
             //pega o estado atual do usuario, se existir
 
 
@@ -70,7 +71,7 @@ function start(client: any) {
 
                     const contatosFormatados = contatos.join('\n\n') //retorna uma string unica usando uma nova linha como separador dos contatos
 
-                    await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}\n\n\n Deseja consultar mais contatos? \n **1** - Sim\n**2** - Não`)
+                    await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}\n\n\n Não conseguiu contato com esses números? Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
 
 
                     usuarioEstdo[message.from] = 'aguardando_relacionados'
@@ -105,6 +106,8 @@ function start(client: any) {
 
                     }
 
+                    await client.sendText(message.from, '📞 Espero que esse endereço te ajude! Se precisar de mais suporte, estarei por aqui. Cuide-se! 💬');
+
                     usuarioEstdo[message.from] = 'inicial'
 
 
@@ -114,44 +117,41 @@ function start(client: any) {
                     usuarioEstdo[message.from] = 'inicial'
                 }
 
-            } else if (estadoAtual === 'aguardando_aguardando_relacionados') {
+            } else if (estadoAtual === 'aguardando_relacionados') {
                 if (message.body === '1') {
-                    try {
-                        const contatosRelacionados = await contatos_Relacionados(cpf_consulta)
 
-                        if (!contatosRelacionados) {
-                            await client.sendText(message.from, 'dados inexistentes')
-                        }
+                    const contatosRelacionados = await contatos_Relacionados(cpf_consulta)
 
-                        console.log(contatosRelacionados)
+                    if (typeof contatosRelacionados === 'string') {
+                        await client.sendText(message.from, contatosRelacionados)
+                        return;
 
-                        await client.sendText(message.from, 'dados recebidos com sucesso!')
+                    } else {
 
-                    } catch (error) {
-                        console.log('Erro ao consultar o telefone:', error)
-                        client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
-                        usuarioEstdo[message.from] = 'inicial'
+                        const contatosRelacionadosFormatados = contatosRelacionados.join('\n\n')
+
+                        await client.sendText(message.from, `Segue mais contatos:\n${contatosRelacionadosFormatados}`)
+
                     }
 
+                    await client.sendText(message.from, '👍 Espero que esses contatos sejam úteis! Se precisar de mais ajuda no futuro, é só chamar. Até logo! 😊');
+
+                    usuarioEstdo[message.from] = 'inicial'
 
 
-                    //if (typeof contatosRelacionados === 'string') {
-                    //  await client.sendText(message.from, contatosRelacionados)
-                    // } else {
-
-                    //  const contatosRelacionadosFormatados = contatosRelacionados.join('\n')
-                    // }
-
-
-
-
+                } else if (message.body === '2') {
+                    await client.sendText(message.from, '👍 Tudo certo! Vamos encerrar o atendimento por aqui. Se precisar de mais ajuda, é só mandar uma mensagem. Até logo! 😊')
+                    usuarioEstdo[message.from] = 'inicial'
+                } else {
+                    await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
                 }
             }
 
 
 
         }
-    });
+    }
+    );
 }
 
 

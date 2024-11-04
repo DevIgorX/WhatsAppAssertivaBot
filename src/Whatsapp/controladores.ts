@@ -70,14 +70,14 @@ export const consultar_endereco = async (cpf) =>{
 
 
 // Função para consulta de contatos relacionados
-export const contatos_Relacionados = async (cpf) => {
+export const contatos_Relacionados = async (cpf: string) => {
 
     try {
 
         const paramentrosProtocolo = await ObterProtoco(cpf as string)
 
         if (!paramentrosProtocolo) {
-            return { mensagem: 'Erro ao Obter protocolo' }
+            return 'Erro ao Obter protocolo' 
         }
 
         const instancia = await criarInstanciaComToken();
@@ -92,7 +92,7 @@ export const contatos_Relacionados = async (cpf) => {
         });
 
         if (!data.resposta.maisTelefones) {
-            return { mensagem: 'Nenhum telefone relacionado encontrado para o CPF informado.' };
+            return 'Nenhum telefone relacionado encontrado para o CPF informado.';
         }
 
 
@@ -115,7 +115,7 @@ export const contatos_Relacionados = async (cpf) => {
         
     } catch (error) {
         console.log(error);
-       return 'Erro interno do Servidor' 
+       return 'Infelizmente, não localizamos mais telefones para este CPF. Tente novamente mais tarde.' 
     }
 };
 
