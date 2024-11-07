@@ -116,7 +116,7 @@ function start(client: any) {
 
                     }
 
-                    await client.sendText(message.from, '📞 Espero que esse endereço te ajude! Se precisar de mais suporte, estarei por aqui. Cuide-se! 💬');
+                    await client.sendText(message.from, '📞 Espero que esse endereço te ajude! Se precisar de mais suporte, estarei por aqui. Até mais! 💬');
 
                     usuarioEstdo[message.from] = 'inicial'
 
