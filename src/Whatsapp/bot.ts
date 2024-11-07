@@ -105,7 +105,8 @@ function start(client: any) {
                     //verifica se o retorno é uma string de erro
                     if (typeof enderecos === 'string') {
                         await client.sendText(message.from, enderecos)
-                        usuarioEstdo[message.from] = 'inicial'
+                        await client.sendText(message.from, '*1*. Tentar novamente?\n *2*. Não, talvez mais tarde!')
+                        usuarioEstdo[message.from] = 'aguardando_tente_Novamente'
                         return
                     } else {
                         //formata o endereço em uma string legível para o usuario
@@ -115,7 +116,6 @@ function start(client: any) {
                         await client.sendText(message.from, `Segue Endereço:\n${enderecoFormatado}`)
 
                     }
-
                     await client.sendText(message.from, '📞 Espero que esse endereço te ajude! Se precisar de mais suporte, estarei por aqui. Até mais! 💬');
 
                     usuarioEstdo[message.from] = 'inicial'
@@ -155,6 +155,14 @@ function start(client: any) {
                     usuarioEstdo[message.from] = 'inicial'
                 } else {
                     await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
+                }
+            } else if (estadoAtual === 'aguardando_tente_Novamente') {
+                if (message.body === '1') {
+                    await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
+                    usuarioEstdo[message.from] = 'aguardando_cpf_endereco'
+                } else if (message.body === '2') {
+                    await client.sendText(message.from, 'Ok, vamos encerrar o seu atendimento por aqui. Se precisar de ajuda, é só chama! 😌')
+                    usuarioEstdo[message.from] = 'inicial'
                 }
             }
 
