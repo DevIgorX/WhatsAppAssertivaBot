@@ -26,7 +26,6 @@ function start(client: any) {
         // Verifica se a mensagem não está vazia e não é de um grupo
         if (message.body != "" && message.isGroupMsg === false) {
 
-
             //pega o estado atual do usuario, se existir
 
 
@@ -34,7 +33,7 @@ function start(client: any) {
 
             if (estadoAtual === 'inicial') {
                 //Estado inicial: Pergunta comoo usuário quer ser ajudado
-                await client.sendText(message.from, `Olá ${message.notifyName}! 🚛💨\n\nBem-vindo ao assistente virtual da Domicilio Transportes! Estou aqui para facilitar suas entregas, fornecendo informações essenciais sobre os clientes de forma rápida e prática.\n\nComo posso ajudar você hoje?  \n\n📞 **1** - Consultar contatos dos clientes?  \n🏠**2** - Obter informações de endereços?  \n\nBasta responder com o número da opção desejada e vamos otimizar suas entregas!`);
+                await client.sendText(message.from, `Olá ${message.notifyName}! 🚛💨\n\nBem-vindo ao assistente virtual da Domicilio Transportes! Estou aqui para facilitar suas entregas, fornecendo informações essenciais sobre os clientes de forma rápida e prática.\n\nComo posso te ajudar hoje?  \n\n📞 **1** - Consultar contatos dos clientes?  \n🏠**2** - Obter informações de endereços?  \n\nBasta responder com o número da opção desejada e vamos otimizar suas entregas!`);
 
                 //atualiza o estado do usuario
 
@@ -69,10 +68,18 @@ function start(client: any) {
 
                     const contatos = await consulta_telefone(message.body)
 
-                    const contatosFormatados = contatos.join('\n\n') //retorna uma string unica usando uma nova linha como separador dos contatos
+                    if (typeof contatos === 'string') {
+                        await client.sendText(message.from, contatos)
+                        usuarioEstdo[message.from] = 'inicial'
+                        return;
 
-                    await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}\n\n\n Não conseguiu contato com esses números? Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
+                    } else {
+                        const contatosFormatados = contatos.join('\n\n') //retorna uma string unica usando uma nova linha como separador dos contatos
 
+                        await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}\n`)
+                    }
+
+                    await client.sendText(message.from, `Não conseguiu contato com esses números? Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
 
                     usuarioEstdo[message.from] = 'aguardando_relacionados'
 
@@ -81,6 +88,7 @@ function start(client: any) {
                     client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
                     usuarioEstdo[message.from] = 'inicial'
                 }
+
             } else if (estadoAtual === 'aguardando_cpf_endereco') {
 
                 const cpf = message.body.replace(/\D/g, '')
@@ -97,6 +105,8 @@ function start(client: any) {
                     //verifica se o retorno é uma string de erro
                     if (typeof enderecos === 'string') {
                         await client.sendText(message.from, enderecos)
+                        usuarioEstdo[message.from] = 'inicial'
+                        return
                     } else {
                         //formata o endereço em uma string legível para o usuario
 
@@ -112,7 +122,7 @@ function start(client: any) {
 
 
                 } catch (error) {
-                    console.log('Erro ao consultar o telefone:', error)
+                    console.log('Erro ao consultar o telefone:', error.message)
                     client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
                     usuarioEstdo[message.from] = 'inicial'
                 }
@@ -124,17 +134,18 @@ function start(client: any) {
 
                     if (typeof contatosRelacionados === 'string') {
                         await client.sendText(message.from, contatosRelacionados)
+                        usuarioEstdo[message.from] = 'inicial'
                         return;
 
                     } else {
 
                         const contatosRelacionadosFormatados = contatosRelacionados.join('\n\n')
 
-                        await client.sendText(message.from, `Segue mais contatos:\n${contatosRelacionadosFormatados}`)
+                        await client.sendText(message.from, `Segue mais contatos:\n${contatosRelacionadosFormatados}\n`)
 
                     }
 
-                    await client.sendText(message.from, '👍 Espero que esses contatos sejam úteis! Se precisar de mais ajuda no futuro, é só chamar. Até logo! 😊');
+                    await client.sendText(message.from, '👍 Espero que esses contatos ajudem! Se precisar de mais suporte, é só chamar. Até logo! 😊');
 
                     usuarioEstdo[message.from] = 'inicial'
 

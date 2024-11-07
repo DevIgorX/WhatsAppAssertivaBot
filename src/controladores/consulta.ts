@@ -39,7 +39,15 @@ export const consultar_endereco = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ mensagem: 'Erro interno do servidor' })
+
+        if(error.status === 404){
+            return res.status(505).json({mensagem: 'CPF não localizado.'})
+        }
+        if(error.status === 400){
+            return res.status(505).json({mensagem: 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'})
+        }
+
+        return res.status(500).json({mensagem:`Erro interno do Servidor: ${error.message}`})
     }
 
 
@@ -129,15 +137,6 @@ export const consulta_contatos_relacionado = async (req: Request, res: Response)
             }
         });
 
-        // Extrai os telefones do resultado da API, se existirem
-        //const { resposta: { maisTelefones } } = data;
-
-        // if (!maisTelefones) {
-        //return res.status(404).json({ mensagem: 'Nenhum telefone relacionado encontrado para o CPF informado.' });
-        // }
-
-        // Retorna os dados dos telefones encontrados
-        //return res.status(200).json(maisTelefones);
 
         const { resposta: { maisTelefones: { fixos, moveis } } } = data
 

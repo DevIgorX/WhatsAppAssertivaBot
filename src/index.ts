@@ -12,7 +12,7 @@ app.use(rotas)
 
 startBot()
 
-//app.listen(3000)
+app.listen(3000)
 
 
 

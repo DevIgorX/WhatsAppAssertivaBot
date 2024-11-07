@@ -3,7 +3,8 @@ import { ObterProtoco } from "./funcoesAuxiliares";
 
 export const consulta_telefone = async (cpf) => {
                 
-    const instancia = await criarInstanciaComToken()
+    try {
+        const instancia = await criarInstanciaComToken()
 
     const { data } = await instancia.get(`/localize/v3/cpf?cpf=${cpf}&idFinalidade=1`)
 
@@ -24,9 +25,20 @@ export const consulta_telefone = async (cpf) => {
 
     return todosContatos
 
+    } catch (error) {
+        console.log(error)
+
+        if(error.status === 404){
+            return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.'
+        }else if(error.status === 400){
+            return 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'
+        }else {
+            return 'Desculpe, não conseguimos processar o CPF no momento. Tente novamente mais tarde.'
+        }
+    }
+
 
 };
-
 
 //const usuarioEstdo: { [chave: string]: string } = {}
 
@@ -61,11 +73,22 @@ export const consultar_endereco = async (cpf) =>{
         
     } catch (error) {
         console.log(error)
-        return 'Desculpe, não conseguimos processar seu CPF no momento.'
+
+        if(error.status === 404){
+            return 'CPF não localizado no sistema.'
+        }else if(error.status === 400){
+            return 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'
+        }else {
+            return 'Desculpe, não conseguimos processar o CPF no momento. Tente novamente mais tarde.'
+        }
+
     }
 
 
 }
+
+
+
 
 
 
@@ -82,7 +105,7 @@ export const contatos_Relacionados = async (cpf: string) => {
 
         const instancia = await criarInstanciaComToken();
 
-        // Realiza a consulta com os parâmetros tipo, documento e protocolo
+        // Realiza a consulta com os parâmetros de query, tipo, documento e protocolo
         const { data } = await instancia.get('/localize/v3/mais-telefones', {
             params: {
                 tipo:paramentrosProtocolo.tipo,       // CPF ou CNPJ
@@ -95,8 +118,6 @@ export const contatos_Relacionados = async (cpf: string) => {
             return 'Nenhum telefone relacionado encontrado para o CPF informado.';
         }
 
-
-        // Extrai os telefones do resultado da API, se existirem
         const { resposta: { maisTelefones: {fixos, moveis} } } = data;
 
         const contatosFixos  = fixos.map((fixo:any)=>{
@@ -109,7 +130,6 @@ export const contatos_Relacionados = async (cpf: string) => {
 
         const todosContatos = [...contatosMoveis , ...contatosFixos]
     
-        // Retorna os dados dos telefones encontrados
 
         return todosContatos
         
