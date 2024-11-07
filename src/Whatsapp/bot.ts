@@ -70,7 +70,8 @@ function start(client: any) {
 
                     if (typeof contatos === 'string') {
                         await client.sendText(message.from, contatos)
-                        usuarioEstdo[message.from] = 'inicial'
+                        await client.sendText(message.from, '*1*. Tentar novamente?\n *2*. Não, talvez mais tarde!')
+                        usuarioEstdo[message.from] = 'aguardando_tente_Novamente_contato'
                         return;
 
                     } else {
@@ -106,7 +107,7 @@ function start(client: any) {
                     if (typeof enderecos === 'string') {
                         await client.sendText(message.from, enderecos)
                         await client.sendText(message.from, '*1*. Tentar novamente?\n *2*. Não, talvez mais tarde!')
-                        usuarioEstdo[message.from] = 'aguardando_tente_Novamente'
+                        usuarioEstdo[message.from] = 'aguardando_tente_Novamente_endereco'
                         return
                     } else {
                         //formata o endereço em uma string legível para o usuario
@@ -156,13 +157,20 @@ function start(client: any) {
                 } else {
                     await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
                 }
-            } else if (estadoAtual === 'aguardando_tente_Novamente') {
+            } else if (estadoAtual === 'aguardando_tente_Novamente_endereco') {
                 if (message.body === '1') {
                     await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
                     usuarioEstdo[message.from] = 'aguardando_cpf_endereco'
                 } else if (message.body === '2') {
-                    await client.sendText(message.from, 'Ok, vamos encerrar o seu atendimento por aqui. Se precisar de ajuda, é só chama! 😌')
+                    await client.sendText(message.from, 'Ok, vamos encerrar o seu atendimento por aqui. Se precisar de mais ajuda, é só chama! 😌🚛')
                     usuarioEstdo[message.from] = 'inicial'
+                }
+            } else if (estadoAtual === 'aguardando_tente_Novamente_contato') {
+                if (message.body === '1') {
+                    await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
+                    usuarioEstdo[message.from] = 'aguardando_cpf_contatos'
+                } else {
+                    await client.sendText(message.from, 'Tudo bem, vamos encerrar o seu atendimento por aqui. Se precisar de mais ajuda, é só chamar! 😌🚚')
                 }
             }
 

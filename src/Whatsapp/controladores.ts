@@ -29,7 +29,7 @@ export const consulta_telefone = async (cpf) => {
         console.log(error)
 
         if(error.status === 404){
-            return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.'
+            return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente.'
         }else if(error.status === 400){
             return 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'
         }else {
