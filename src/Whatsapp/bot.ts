@@ -33,7 +33,7 @@ function start(client: any) {
 
             if (estadoAtual === 'inicial') {
                 //Estado inicial: Pergunta comoo usuário quer ser ajudado
-                await client.sendText(message.from, `Olá ${message.notifyName}! 🚛💨\n\nBem-vindo ao assistente virtual da Domicilio Transportes! Estou aqui para facilitar suas entregas, fornecendo informações essenciais sobre os clientes de forma rápida e prática.\n\nComo posso te ajudar hoje?  \n\n📞 **1** - Consultar contatos dos clientes?  \n🏠**2** - Obter informações de endereços?  \n\nBasta responder com o número da opção desejada e vamos otimizar suas entregas!`);
+                await client.sendText(message.from, `Olá ${message.notifyName}! 🚛💨\n\nBem-vindo ao assistente virtual da Domicilio Transportes! Estou aqui para facilitar suas entregas, fornecendo informações essenciais sobre os clientes de forma rápida e prática.\n\nComo posso te ajudar hoje?  \n\n📞**1** - Consultar contatos dos clientes?  \n🏠**2** - Obter informações de endereços?  \n\nBasta responder com o número da opção desejada e vamos otimizar suas entregas!`);
 
                 //atualiza o estado do usuario
 
@@ -70,7 +70,7 @@ function start(client: any) {
 
                     if (typeof contatos === 'string') {
                         await client.sendText(message.from, contatos)
-                        await client.sendText(message.from, '*1*. Tentar novamente?\n *2*. Não, talvez mais tarde!')
+                        await client.sendText(message.from, '*1*. Tentar novamente?\n*2*. Não, talvez mais tarde!')
                         usuarioEstdo[message.from] = 'aguardando_tente_Novamente_contato'
                         return;
 
@@ -106,7 +106,7 @@ function start(client: any) {
                     //verifica se o retorno é uma string de erro
                     if (typeof enderecos === 'string') {
                         await client.sendText(message.from, enderecos)
-                        await client.sendText(message.from, '*1*. Tentar novamente?\n *2*. Não, talvez mais tarde!')
+                        await client.sendText(message.from, '*1*. Tentar novamente?\n*2*. Não, talvez mais tarde!')
                         usuarioEstdo[message.from] = 'aguardando_tente_Novamente_endereco'
                         return
                     } else {
@@ -164,13 +164,18 @@ function start(client: any) {
                 } else if (message.body === '2') {
                     await client.sendText(message.from, 'Ok, vamos encerrar o seu atendimento por aqui. Se precisar de mais ajuda, é só chama! 😌🚛')
                     usuarioEstdo[message.from] = 'inicial'
+                }else{
+                    await client.sendText(message.from, 'Por favor ,escolha uma opção válida: 1 ou 2')
                 }
             } else if (estadoAtual === 'aguardando_tente_Novamente_contato') {
                 if (message.body === '1') {
                     await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
                     usuarioEstdo[message.from] = 'aguardando_cpf_contatos'
-                } else {
-                    await client.sendText(message.from, 'Tudo bem, vamos encerrar o seu atendimento por aqui. Se precisar de mais ajuda, é só chamar! 😌🚚')
+                } else if(message.body === '2') {
+                    await client.sendText(message.from,'Tudo bem, vamos encerrar o seu atendimento por aqui. Se precisar de mais ajuda, é só chama! 😌🚚')
+                    usuarioEstdo[message.from] = 'inicial'
+                }else{
+                    await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
                 }
             }
 
