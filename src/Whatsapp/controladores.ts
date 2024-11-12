@@ -22,6 +22,10 @@ export const consulta_telefone = async (cpf) => {
 
     const todosContatos = [...contatosMoveis, ...contatosFixos]
 
+    if(!todosContatos.length){
+        return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente.'
+    }
+
 
     return todosContatos
 
@@ -40,7 +44,6 @@ export const consulta_telefone = async (cpf) => {
 
 };
 
-//const usuarioEstdo: { [chave: string]: string } = {}
 
 export const consultar_endereco = async (cpf) =>{
 
@@ -66,6 +69,11 @@ export const consultar_endereco = async (cpf) =>{
             { chave: "uf: ", valor: uf },
             { chave: "cep: ", valor: cep },
         ]
+
+
+        if(endereco_completo.length === 0){
+           return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente.'
+        }
 
 
         return endereco_completo
@@ -130,6 +138,10 @@ export const contatos_Relacionados = async (cpf: string) => {
 
         const todosContatos = [...contatosMoveis , ...contatosFixos]
     
+        //verificando se o araray não é um falsy
+        if(!todosContatos.length){
+            return 'Infelizmente, não localizamos mais telefones para este CPF. Tente novamente mais tarde.'
+        }
 
         return todosContatos
         
