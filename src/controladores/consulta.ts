@@ -64,6 +64,7 @@ export const consulta_telefone = async (req: Request, res: Response) => {
         const { data } = await instancia.get(`/localize/v3/cpf?cpf=${cpf}&idFinalidade=1`)
 
         const { resposta: { telefones: { moveis, fixos } } } = data
+        
 
 
         const contatosMoveis = moveis.map((movel: any) => {

@@ -28,7 +28,6 @@ function start(client: any) {
 
             //pega o estado atual do usuario, se existir
 
-
             const estadoAtual = usuarioEstdo[message.from] || 'inicial'
 
             if (estadoAtual === 'inicial') {
@@ -157,6 +156,9 @@ function start(client: any) {
                 } else {
                     await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
                 }
+
+
+
             } else if (estadoAtual === 'aguardando_tente_Novamente_endereco') {
                 if (message.body === '1') {
                     await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
@@ -178,7 +180,6 @@ function start(client: any) {
                     await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
                 }
             }
-
 
 
         }
