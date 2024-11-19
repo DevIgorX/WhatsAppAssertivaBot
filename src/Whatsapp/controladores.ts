@@ -99,6 +99,18 @@ export const consultar_endereco = async (cpf: string): Promise<string | EndereoI
 
 }
 
+export const consultar_localizacao = async (cpf)=>{
+    const instancia = await criarInstanciaComToken()
+
+    const {data} = await instancia.get(`/localize/v3/cpf?cpf=${cpf}&idFinalidade=1`)
+
+    const {tipoLogradouro, logradouro,latitude, bairro, longitude, cidade, uf} = data.resposta.enderecos[0]
+
+    const dados_localizacao = {tipoLogradouro, logradouro, bairro, latitude, longitude, cidade, uf}
+
+    return dados_localizacao
+}
+
 
 export const contatos_Relacionados = async (cpf: string): Promise<string | string[]> => {
 

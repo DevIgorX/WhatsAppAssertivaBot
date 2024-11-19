@@ -1,6 +1,6 @@
 
 import { create } from 'venom-bot'
-import { consultar_endereco, consulta_telefone, contatos_Relacionados } from './controladores';
+import { consultar_endereco, consultar_localizacao, consulta_telefone, contatos_Relacionados } from './controladores';
 
 
 export const startBot = async () => {
@@ -19,6 +19,9 @@ export const startBot = async () => {
 
 const usuarioEstdo: { [chave: string]: string } = {}
 
+// Objeto para armazenar os temporizadores de cada usuário/ guarda um objeto do tipo NodeJs.Timeout
+const usuarioTimers: { [chave: string]: NodeJS.Timeout | number } = {};
+
 function start(client: any) {
     let cpf_consulta: string
     client.onMessage(async (message: any) => {
@@ -26,13 +29,29 @@ function start(client: any) {
         // Verifica se a mensagem não está vazia e não é de um grupo
         if (message.body != "" && message.isGroupMsg === false) {
 
+            const UsuarioId = message.from
             //pega o estado atual do usuario, se existir
 
             const estadoAtual = usuarioEstdo[message.from] || 'inicial'
 
+            // Função para redefinir o temporizador de inatividade
+            const resetTimer = () => {
+                if (usuarioTimers[UsuarioId]) clearTimeout(usuarioTimers[UsuarioId]); //if na sintaxe abreviada
+
+                usuarioTimers[UsuarioId] = setTimeout(() => {
+                    usuarioEstdo[UsuarioId] = "inicial";
+                    client.sendText(
+                        UsuarioId,
+                        "🚶‍♂️ Você ficou inativo por muito tempo. O atendimento foi encerrado. Se precisar de ajuda, é só enviar uma nova mensagem!"
+                    );
+                }, 180000); // 3 minutos
+            };
+
+            resetTimer(); // Reinicia o temporizador sempre que uma mensagem é recebida
+
             if (estadoAtual === 'inicial') {
                 //Estado inicial: Pergunta comoo usuário quer ser ajudado
-                await client.sendText(message.from, `Olá ${message.notifyName}! 🚛💨\n\nSeja bem-vindo ao assistente virtual da Domicilio Transportes! Estou aqui para facilitar suas entregas, fornecendo informações essenciais sobre os clientes de forma rápida e prática.\n\nComo posso te ajudar hoje?  \n\n📞**1** - Consultar contatos dos clientes?  \n🏠**2** - Obter informações de endereços?  \n\nBasta responder com o número da opção desejada e vamos otimizar suas entregas!`);
+                await client.sendText(message.from, `Olá ${message.notifyName}! 🚛💨\n\nSeja bem-vindo ao assistente virtual da Domicilio Transportes! Estou aqui para facilitar suas entregas, fornecendo informações essenciais sobre os clientes de forma rápida e prática.\n\nComo posso te ajudar hoje?  \n\n📞*1* - Consultar contatos dos clientes?  \n🏠*2* - Obter informações de endereços?  \n\nBasta responder com o número da opção desejada e vamos otimizar suas entregas!`);
 
                 //atualiza o estado do usuario
 
@@ -81,6 +100,7 @@ function start(client: any) {
 
                     await client.sendText(message.from, `Não conseguiu contato com esses números? Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
 
+                    //colocar tempo de espera
                     usuarioEstdo[message.from] = 'aguardando_relacionados'
 
                 } catch (error) {
@@ -100,8 +120,8 @@ function start(client: any) {
 
 
                 try {
-
                     const enderecos = await consultar_endereco(message.body)
+                    const localizacao = await consultar_localizacao(message.body)
                     //verifica se o retorno é uma string de erro
                     if (typeof enderecos === 'string') {
                         await client.sendText(message.from, enderecos)
@@ -112,10 +132,14 @@ function start(client: any) {
                         //formata o endereço em uma string legível para o usuario
 
                         const enderecoFormatado = enderecos.map(item => `${item.chave} ${item.valor}`).join('\n')
-
                         await client.sendText(message.from, `Segue Endereço:\n${enderecoFormatado}`)
 
+
+                        const descricao = `Endereço: ${localizacao.tipoLogradouro} ${localizacao.logradouro}, ${localizacao.bairro}, ${localizacao.cidade} - ${localizacao.uf}`
+                        await client.sendLocation(message.from, localizacao.latitude, localizacao.longitude, descricao)
+
                     }
+
                     await client.sendText(message.from, '📞 Espero que esse endereço te ajude! Se precisar de mais suporte, estarei por aqui. Até mais! 💬');
 
                     usuarioEstdo[message.from] = 'inicial'
