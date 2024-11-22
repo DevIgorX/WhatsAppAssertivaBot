@@ -1,3 +1,4 @@
+import e from "express";
 import criarInstanciaComToken from "../Api/axios";
 import { ObterProtoco } from "./funcoesAuxiliares";
 import { EndereoItem } from "./tiposUtilitarios";
@@ -26,7 +27,8 @@ export const consulta_telefone = async (cpf: string): Promise<string[] | string>
         const todosContatos = [...contatosMoveis, ...contatosFixos]
         //verificação para saber se o array não veio vazio
         if (!todosContatos.length) {
-            return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente.'
+            const buscarRelacionados = await contatos_Relacionados(cpf)
+            return buscarRelacionados
         }
 
 
@@ -40,9 +42,12 @@ export const consulta_telefone = async (cpf: string): Promise<string[] | string>
             return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente.'
         } else if (error.status === 400) {
             return 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'
+        } else if(error.status === 403){
+            return "⏰ Oops! As consultas estão disponíveis após as 08:00 horas. Por favor, volte dentro do horário permitido. 😊"
         } else {
-            return 'Desculpe, não conseguimos processar o CPF no momento. Tente novamente mais tarde.'
-        }
+                return 'Desculpe, não conseguimos processar o CPF no momento. Tente novamente mais tarde.'
+            }
+        
     }
 
 

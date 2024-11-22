@@ -51,25 +51,13 @@ function start(client: any) {
 
             if (estadoAtual === 'inicial') {
                 //Estado inicial: Pergunta comoo usuário quer ser ajudado
-                await client.sendText(message.from, `Olá ${message.notifyName}! 🚛💨\n\nSeja bem-vindo ao assistente virtual da Domicilio Transportes! Estou aqui para facilitar suas entregas, fornecendo informações essenciais sobre os clientes de forma rápida e prática.\n\nComo posso te ajudar hoje?  \n\n📞*1* - Consultar contatos dos clientes?  \n🏠*2* - Obter informações de endereços?  \n\nBasta responder com o número da opção desejada e vamos otimizar suas entregas!`);
+                await client.sendText(message.from, `Olá, ${message.notifyName}! 🚛💨\n\nBem-vindo ao assistente virtual da Domicílio Transportes! Agora ficou ainda mais fácil agilizar suas entregas. ✅ \n\nDigite o *CPF do cliente* que deseja consultar, e eu retornarei todas as informações necessárias: \n📞 contatos e 🏠 endereço. Vamos começar? 😊`);
 
+                await client.sendText(message.from, 'Por favor, digite o CPF do(a) cliente')
                 //atualiza o estado do usuario
 
-                usuarioEstdo[message.from] = 'aguardando_opção'
-            } else if (estadoAtual === 'aguardando_opção') {
-                //bot está aguardando uma resposta da primeira pergunta 
-                if (message.body === '1') {
-                    await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
-                    //Atualiza o estado para aguardando o CPF
-                    usuarioEstdo[message.from] = 'aguardando_cpf_contatos'
-                } else if (message.body === '2') {
-                    await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
-                    usuarioEstdo[message.from] = 'aguardando_cpf_endereco'
-
-                } else {
-                    //se o usuário não digitar uma opção válida
-                    await client.sendText(message.from, 'Por favor ,escolha uma opção válida: 1 ou 2')
-                }
+                usuarioEstdo[message.from] = 'aguardando_cpf_contatos'
+                
             } else if (estadoAtual === 'aguardando_cpf_contatos') {
                 // Remove caracteres não numéricos do CPF
                 const cpf_do_cliente = message.body.replace(/\D/g, '');
@@ -83,10 +71,11 @@ function start(client: any) {
 
 
                 try {
-
+                    const enderecos = await consultar_endereco(message.body)
+                    const localizacao = await consultar_localizacao(message.body)
                     const contatos = await consulta_telefone(message.body)
 
-                    if (typeof contatos === 'string') {
+                    if (typeof contatos === 'string' || typeof enderecos === 'string') {
                         await client.sendText(message.from, contatos)
                         await client.sendText(message.from, '*1*. Tentar novamente?\n*2*. Não, talvez mais tarde!')
                         usuarioEstdo[message.from] = 'aguardando_tente_Novamente_contato'
@@ -96,60 +85,27 @@ function start(client: any) {
                         const contatosFormatados = contatos.join('\n\n') //retorna uma string unica usando uma nova linha como separador dos contatos
 
                         await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}\n`)
-                    }
-
-                    await client.sendText(message.from, `Não conseguiu contato com esses números? Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
-
-                    //colocar tempo de espera
-                    usuarioEstdo[message.from] = 'aguardando_relacionados'
-
-                } catch (error) {
-                    console.log('Erro ao consultar o telefone:', error.message)
-                    client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
-                    usuarioEstdo[message.from] = 'inicial'
-                }
-
-            } else if (estadoAtual === 'aguardando_cpf_endereco') {
-
-                const cpf = message.body.replace(/\D/g, '')
-
-                if (!/^\d{11}$/.test(cpf)) {
-                    await client.sendText(message.from, 'CPF inválido. Por favor, insira um CPF válido com 11 dígitos.');
-                    return; // Sai da função para que o usuário possa tentar novamente
-                }
-
-
-                try {
-                    const enderecos = await consultar_endereco(message.body)
-                    const localizacao = await consultar_localizacao(message.body)
-                    //verifica se o retorno é uma string de erro
-                    if (typeof enderecos === 'string') {
-                        await client.sendText(message.from, enderecos)
-                        await client.sendText(message.from, '*1*. Tentar novamente?\n*2*. Não, talvez mais tarde!')
-                        usuarioEstdo[message.from] = 'aguardando_tente_Novamente_endereco'
-                        return
-                    } else {
-                        //formata o endereço em uma string legível para o usuario
 
                         const enderecoFormatado = enderecos.map(item => `${item.chave} ${item.valor}`).join('\n')
                         await client.sendText(message.from, `Segue Endereço:\n${enderecoFormatado}`)
 
-
                         const descricao = `Endereço: ${localizacao.tipoLogradouro} ${localizacao.logradouro}, ${localizacao.bairro}, ${localizacao.cidade} - ${localizacao.uf}`
                         await client.sendLocation(message.from, localizacao.latitude, localizacao.longitude, descricao)
-
                     }
-
-                    await client.sendText(message.from, '📞 Espero que esse endereço te ajude! Se precisar de mais suporte, estarei por aqui. Até mais! 💬');
-
-                    usuarioEstdo[message.from] = 'inicial'
 
 
                 } catch (error) {
                     console.log('Erro ao consultar o telefone:', error.message)
+
+                    if (!error.message) {
+                        await client.sendText(message.from, `Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
+                        usuarioEstdo[message.from] = 'aguardando_relacionados'
+                        return
+                    }
                     client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
                     usuarioEstdo[message.from] = 'inicial'
                 }
+
 
             } else if (estadoAtual === 'aguardando_relacionados') {
                 if (message.body === '1') {
@@ -181,18 +137,6 @@ function start(client: any) {
                     await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
                 }
 
-
-
-            } else if (estadoAtual === 'aguardando_tente_Novamente_endereco') {
-                if (message.body === '1') {
-                    await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
-                    usuarioEstdo[message.from] = 'aguardando_cpf_endereco'
-                } else if (message.body === '2') {
-                    await client.sendText(message.from, 'Ok, vamos encerrar o seu atendimento por aqui. Se precisar de mais ajuda, é só chama! 😌🚛')
-                    usuarioEstdo[message.from] = 'inicial'
-                } else {
-                    await client.sendText(message.from, 'Por favor ,escolha uma opção válida: 1 ou 2')
-                }
             } else if (estadoAtual === 'aguardando_tente_Novamente_contato') {
                 if (message.body === '1') {
                     await client.sendText(message.from, 'Por favor digite o CPF do(a) cliente')
