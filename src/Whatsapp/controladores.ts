@@ -1,3 +1,4 @@
+import axios from "axios";
 import e from "express";
 import criarInstanciaComToken from "../Api/axios";
 import { ObterProtoco } from "./funcoesAuxiliares";
@@ -35,19 +36,25 @@ export const consulta_telefone = async (cpf: string): Promise<string[] | string>
         return todosContatos
 
 
-    } catch (error) {
+    } catch (error: any) {
         console.log(error)
 
-        if (error.status === 404) {
-            return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente.'
-        } else if (error.status === 400) {
-            return 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'
-        } else if(error.status === 403){
-            return "⏰ Oops! As consultas estão disponíveis após as 08:00 horas. Por favor, volte dentro do horário permitido. 😊"
-        } else {
-                return 'Desculpe, não conseguimos processar o CPF no momento. Tente novamente mais tarde.'
-            }
-        
+        if(axios.isAxiosError(error) && error.response) {
+            const {status} = error.response
+            if (status === 404) {
+                return 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente.'
+            } else if (status === 400) {
+                return 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'
+            } else if (status === 403) {
+                return "⏰ Oops! As consultas estão disponíveis após as 08:00 horas. Por favor, volte dentro do horário permitido. 😊"
+            } 
+
+        }
+
+        return 'Desculpe, não conseguimos processar o CPF no momento. Tente novamente mais tarde.'
+
+      
+
     }
 
 
@@ -104,16 +111,28 @@ export const consultar_endereco = async (cpf: string): Promise<string | EndereoI
 
 }
 
-export const consultar_localizacao = async (cpf)=>{
-    const instancia = await criarInstanciaComToken()
+export const consultar_localizacao = async (cpf:string): Promise<any> => {
+    try {
+        const instancia = await criarInstanciaComToken()
 
-    const {data} = await instancia.get(`/localize/v3/cpf?cpf=${cpf}&idFinalidade=1`)
+    const { data } = await instancia.get(`/localize/v3/cpf?cpf=${cpf}&idFinalidade=1`)
 
-    const {tipoLogradouro, logradouro,latitude, bairro, longitude, cidade, uf} = data.resposta.enderecos[0]
+    const { tipoLogradouro, logradouro, latitude, bairro, longitude, cidade, uf } = data.resposta.enderecos[0]
 
-    const dados_localizacao = {tipoLogradouro, logradouro, bairro, latitude, longitude, cidade, uf}
+    const dados_localizacao = { tipoLogradouro, logradouro, bairro, latitude, longitude, cidade, uf }
 
     return dados_localizacao
+
+    } catch (error) {
+        
+        if (error.status === 404) {
+            return 'CPF não localizado no sistema.'
+        } else if (error.status === 400) {
+            return 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'
+        } else {
+            return 'Desculpe, não conseguimos processar o CPF no momento. Tente novamente mais tarde.'
+        }
+    }
 }
 
 

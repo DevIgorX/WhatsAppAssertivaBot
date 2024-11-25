@@ -24,6 +24,7 @@ const usuarioTimers: { [chave: string]: NodeJS.Timeout | number } = {};
 
 function start(client: any) {
     let cpf_consulta: string
+
     client.onMessage(async (message: any) => {
 
         // Verifica se a mensagem não está vazia e não é de um grupo
@@ -57,7 +58,7 @@ function start(client: any) {
                 //atualiza o estado do usuario
 
                 usuarioEstdo[message.from] = 'aguardando_cpf_contatos'
-                
+
             } else if (estadoAtual === 'aguardando_cpf_contatos') {
                 // Remove caracteres não numéricos do CPF
                 const cpf_do_cliente = message.body.replace(/\D/g, '');
@@ -71,9 +72,12 @@ function start(client: any) {
 
 
                 try {
-                    const enderecos = await consultar_endereco(message.body)
-                    const localizacao = await consultar_localizacao(message.body)
+
+
                     const contatos = await consulta_telefone(message.body)
+                    const localizacao = await consultar_localizacao(message.body)
+                    const enderecos = await consultar_endereco(message.body)
+
 
                     if (typeof contatos === 'string' || typeof enderecos === 'string') {
                         await client.sendText(message.from, contatos)
@@ -102,6 +106,7 @@ function start(client: any) {
                         usuarioEstdo[message.from] = 'aguardando_relacionados'
                         return
                     }
+
                     client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
                     usuarioEstdo[message.from] = 'inicial'
                 }
