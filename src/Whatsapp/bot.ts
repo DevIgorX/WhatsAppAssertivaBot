@@ -81,6 +81,9 @@ function start(client: any) {
 
                     if (typeof contatos === 'string' || typeof enderecos === 'string') {
                         await client.sendText(message.from, contatos)
+                        if (contatos.includes("Oops!")) {
+                            return
+                        }
                         await client.sendText(message.from, '*1*. Tentar novamente?\n*2*. Não, talvez mais tarde!')
                         usuarioEstdo[message.from] = 'aguardando_tente_Novamente_contato'
                         return;

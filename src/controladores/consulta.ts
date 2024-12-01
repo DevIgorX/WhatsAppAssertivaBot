@@ -37,21 +37,47 @@ export const consultar_endereco = async (req: Request, res: Response) => {
         return res.status(200).json(endereco_completo)
 
 
-    } catch (error) {
-        console.log(error)
+    } catch (error:any) {
 
-        if(error.status === 404){
-            return res.status(505).json({mensagem: 'CPF não localizado.'})
-        }
-        if(error.status === 400){
-            return res.status(505).json({mensagem: 'CPF inválido ou inexistente. Verifique as informações e tente novamente.'})
+        console.error(error)
+        console.error('Erro ao consultar endereço:', {
+            mensagem: error.message,
+            status: error.response?.status,
+            dados: error.response?.data,
+        });
+
+        // Tratamento de erros baseados no status HTTP
+        if (error.response) {
+            const { status, data } = error.response;
+
+            if (status === 404) {
+                return res.status(404).json({ mensagem: 'CPF não localizado.' });
+            }
+
+            if (status === 400) {
+                return res.status(400).json({ mensagem: 'CPF inválido ou inexistente. Verifique as informações e tente novamente.' });
+            }
+
+            // Para outros erros de resposta
+            return res.status(status).json({ mensagem: data?.mensagem || 'Erro inesperado ao consultar endereço.' });
         }
 
-        return res.status(500).json({mensagem:`Erro interno do Servidor: ${error.message}`})
+        // Erros de conexão ou outros problemas
+        if (error.request) {
+            return res.status(503).json({ mensagem: 'Falha ao se conectar ao serviço de consulta. Tente novamente mais tarde.' });
+        }
+        
+
+        // Erros inesperados
+        return res.status(500).json({ mensagem: `Erro interno do servidor: ${error.message}` });
+
+
+    }
+
     }
 
 
-}
+
 
 
 export const consulta_telefone = async (req: Request, res: Response) => {
