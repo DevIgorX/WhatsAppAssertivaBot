@@ -26,7 +26,6 @@ function start(client: any) {
     let cpf_consulta: string
 
     client.onMessage(async (message: any) => {
-
         // Verifica se a mensagem não está vazia e não é de um grupo
         if (message.body != "" && message.isGroupMsg === false) {
 
@@ -161,6 +160,16 @@ function start(client: any) {
         }
     }
     );
+
+    //fecha a sessão ao encerrar
+    process.on("SIGINT", async () => {
+        console.log("Encerrando bot... Fechando sessão.");
+        await client.close();
+        console.log("Sessão encerrada.");
+        process.exit();
+    });
+
+
 }
 
 
