@@ -22,10 +22,25 @@ const usuarioEstdo: { [chave: string]: string } = {}
 // Objeto para armazenar os temporizadores de cada usuário/ guarda um objeto do tipo NodeJs.Timeout
 const usuarioTimers: { [chave: string]: NodeJS.Timeout | number } = {};
 
+let botOnline = true //Estado do bot
+
 function start(client: any) {
     let cpf_consulta: string
 
     client.onMessage(async (message: any) => {
+
+        if (!botOnline) {
+            const currentTime = Date.now();
+            const messageTime = message.t * 1000; // 't' é o timestamp da mensagem
+
+            // Descartar mensagens antigas (defina um limite, ex.: 1 minuto)
+            if (currentTime - messageTime > 60000) {
+                console.log('Mensagem descartada devido à inatividade do bot:', message.body);
+                return;
+            }
+        }
+
+
         // Verifica se a mensagem não está vazia e não é de um grupo
         if (message.body != "" && message.isGroupMsg === false) {
 
@@ -35,17 +50,20 @@ function start(client: any) {
             const estadoAtual = usuarioEstdo[message.from] || 'inicial'
 
             // Função para redefinir o temporizador de inatividade
-            const resetTimer = () => {
-                if (usuarioTimers[UsuarioId]) clearTimeout(usuarioTimers[UsuarioId]); //if na sintaxe abreviada
+            const resetTimer = (isCancel = false) => {
+                if (usuarioTimers[UsuarioId]) clearTimeout(usuarioTimers[UsuarioId]);
 
-                usuarioTimers[UsuarioId] = setTimeout(() => {
-                    usuarioEstdo[UsuarioId] = "inicial";
-                    client.sendText(
-                        UsuarioId,
-                        "🚶‍♂️ Você ficou inativo por muito tempo. O atendimento foi encerrado. Se precisar de ajuda, é só enviar uma nova mensagem!"
-                    );
-                }, 180000); // 3 minutos
+                if (!isCancel) {
+                    usuarioTimers[UsuarioId] = setTimeout(() => {
+                        usuarioEstdo[UsuarioId] = "inicial";
+                        client.sendText(
+                            UsuarioId,
+                            "🚶‍♂️ Você ficou inativo por muito tempo. O atendimento foi encerrado. Se precisar de ajuda, é só enviar uma nova mensagem!"
+                        );
+                    }, 180000); // 3 minutos
+                }
             };
+
 
             resetTimer(); // Reinicia o temporizador sempre que uma mensagem é recebida
 
@@ -81,6 +99,8 @@ function start(client: any) {
                     if (typeof contatos === 'string' || typeof enderecos === 'string') {
                         await client.sendText(message.from, contatos)
                         if (contatos.includes("Oops!")) {
+                            usuarioEstdo[message.from] = 'inicial'
+                            resetTimer(true)
                             return
                         }
                         await client.sendText(message.from, '*1*. Tentar novamente?\n*2*. Não, talvez mais tarde!')
@@ -97,6 +117,8 @@ function start(client: any) {
 
                         const descricao = `Endereço: ${localizacao.tipoLogradouro} ${localizacao.logradouro}, ${localizacao.bairro}, ${localizacao.cidade} - ${localizacao.uf}`
                         await client.sendLocation(message.from, localizacao.latitude, localizacao.longitude, descricao)
+                        usuarioEstdo[message.from] = 'inicial'
+                        resetTimer(true)
                     }
 
 
@@ -111,6 +133,7 @@ function start(client: any) {
 
                     client.sendText(message.from, 'Nenhum dado foi encontrado para esse CPF. Verifique as informações e tente novamente mais tarde.')
                     usuarioEstdo[message.from] = 'inicial'
+                    resetTimer(true)
                 }
 
 
@@ -135,11 +158,12 @@ function start(client: any) {
                     await client.sendText(message.from, '👍 Espero que esses contatos ajudem! Se precisar de mais suporte, é só chamar. Até logo! 😊');
 
                     usuarioEstdo[message.from] = 'inicial'
-
+                    resetTimer(true)
 
                 } else if (message.body === '2') {
                     await client.sendText(message.from, '👍 Tudo certo! Vamos encerrar o atendimento por aqui. Se precisar de mais ajuda, é só mandar uma mensagem. Até logo! 😊')
                     usuarioEstdo[message.from] = 'inicial'
+                    resetTimer(true)
                 } else {
                     await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
                 }
@@ -151,6 +175,7 @@ function start(client: any) {
                 } else if (message.body === '2') {
                     await client.sendText(message.from, 'Tudo bem, vamos encerrar o seu atendimento por aqui. Se precisar de mais ajuda, é só chama! 😌🚚')
                     usuarioEstdo[message.from] = 'inicial'
+                    resetTimer(true)
                 } else {
                     await client.sendText(message.from, 'Por favor, escolha uma opção válida: 1 ou 2')
                 }
@@ -162,12 +187,12 @@ function start(client: any) {
     );
 
     //fecha a sessão ao encerrar
-    process.on("SIGINT", async () => {
-        console.log("Encerrando bot... Fechando sessão.");
-        await client.close();
-        console.log("Sessão encerrada.");
-        process.exit();
-    });
+     process.on("SIGINT", async () => {
+     console.log("Encerrando bot... Fechando sessão.");
+      await client.close();
+       console.log("Sessão encerrada.");
+       process.exit();
+     });
 
 
 }
