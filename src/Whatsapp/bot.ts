@@ -11,7 +11,7 @@ export const startBot = async () => {
         start(client)
 
     } catch (error) {
-        console.log(error)
+        console.error('Erro ao iniciar o bot:', error)
     }
 }
 
@@ -23,6 +23,7 @@ const usuarioEstdo: { [chave: string]: string } = {}
 const usuarioTimers: { [chave: string]: NodeJS.Timeout | number } = {};
 
 let botOnline = true //Estado do bot
+
 
 function start(client: any) {
     let cpf_consulta: string
@@ -90,19 +91,25 @@ function start(client: any) {
 
                 try {
 
-
+                   
                     const contatos = await consulta_telefone(message.body)
+                    
                     const localizacao = await consultar_localizacao(message.body)
+                
                     const enderecos = await consultar_endereco(message.body)
+                   
 
-
-                    if (typeof contatos === 'string' || typeof enderecos === 'string') {
+                    if (typeof contatos === 'string') {
+            
                         await client.sendText(message.from, contatos)
+                        
                         if (contatos.includes("Oops!")) {
                             usuarioEstdo[message.from] = 'inicial'
                             resetTimer(true)
                             return
                         }
+                        console.log('acontece aqui? 5');
+
                         await client.sendText(message.from, '*1*. Tentar novamente?\n*2*. Não, talvez mais tarde!')
                         usuarioEstdo[message.from] = 'aguardando_tente_Novamente_contato'
                         return;
@@ -111,19 +118,31 @@ function start(client: any) {
                         const contatosFormatados = contatos.join('\n\n') //retorna uma string unica usando uma nova linha como separador dos contatos
 
                         await client.sendText(message.from, `Segue contatos:\n${contatosFormatados}\n`)
-
-                        const enderecoFormatado = enderecos.map(item => `${item.chave} ${item.valor}`).join('\n')
-                        await client.sendText(message.from, `Segue Endereço:\n${enderecoFormatado}`)
-
-                        const descricao = `Endereço: ${localizacao.tipoLogradouro} ${localizacao.logradouro}, ${localizacao.bairro}, ${localizacao.cidade} - ${localizacao.uf}`
-                        await client.sendLocation(message.from, localizacao.latitude, localizacao.longitude, descricao)
-                        usuarioEstdo[message.from] = 'inicial'
-                        resetTimer(true)
                     }
 
 
+                    if (typeof enderecos === 'string') {
+                        await client.sendText(message.from, enderecos)
+                    
+                        await client.sendText(message.from, `Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
+                        usuarioEstdo[message.from] = 'aguardando_relacionados'
+                        return
+
+                    } else {
+                        const enderecoFormatado = enderecos.map(item => `${item.chave} ${item.valor}`).join('\n')
+                        await client.sendText(message.from, `Segue Endereço:\n${enderecoFormatado}`)
+                        console.log('acontece aqui? 7');
+
+                        const descricao = `Endereço: ${localizacao.tipoLogradouro} ${localizacao.logradouro}, ${localizacao.bairro}, ${localizacao.cidade} - ${localizacao.uf}`
+                        await client.sendLocation(message.from, localizacao.latitude, localizacao.longitude, descricao)
+                         
+                    }
+
+
+
+
                 } catch (error) {
-                    console.log('Erro ao consultar o telefone:', error.message)
+                    console.error('Erro ao consultar o telefone:', error.message)
 
                     if (!error.message) {
                         await client.sendText(message.from, `Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
@@ -145,6 +164,7 @@ function start(client: any) {
                     if (typeof contatosRelacionados === 'string') {
                         await client.sendText(message.from, contatosRelacionados)
                         usuarioEstdo[message.from] = 'inicial'
+                        resetTimer(true)
                         return;
 
                     } else {
@@ -187,12 +207,12 @@ function start(client: any) {
     );
 
     //fecha a sessão ao encerrar
-     process.on("SIGINT", async () => {
-     console.log("Encerrando bot... Fechando sessão.");
-      await client.close();
-       console.log("Sessão encerrada.");
-       process.exit();
-     });
+    process.on("SIGINT", async () => {
+        console.log("Encerrando bot... Fechando sessão.");
+        await client.close();
+        console.log("Sessão encerrada.");
+        process.exit();
+    });
 
 
 }
