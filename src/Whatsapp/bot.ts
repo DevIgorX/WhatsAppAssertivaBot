@@ -91,18 +91,18 @@ function start(client: any) {
 
                 try {
 
-                   
+                    await client.sendText(message.from, 'Aguarde só um momento... 🔄')
                     const contatos = await consulta_telefone(message.body)
-                    
+
                     const localizacao = await consultar_localizacao(message.body)
-                
+
                     const enderecos = await consultar_endereco(message.body)
-                   
+
 
                     if (typeof contatos === 'string') {
-            
+
                         await client.sendText(message.from, contatos)
-                        
+
                         if (contatos.includes("Oops!")) {
                             usuarioEstdo[message.from] = 'inicial'
                             resetTimer(true)
@@ -123,7 +123,7 @@ function start(client: any) {
 
                     if (typeof enderecos === 'string') {
                         await client.sendText(message.from, enderecos)
-                    
+
                         await client.sendText(message.from, `Deseja tentar mais telefones de referências ou empresas relacionadas? \n *1* - Sim\n *2* - Não`)
                         usuarioEstdo[message.from] = 'aguardando_relacionados'
                         return
@@ -135,7 +135,7 @@ function start(client: any) {
 
                         const descricao = `Endereço: ${localizacao.tipoLogradouro} ${localizacao.logradouro}, ${localizacao.bairro}, ${localizacao.cidade} - ${localizacao.uf}`
                         await client.sendLocation(message.from, localizacao.latitude, localizacao.longitude, descricao)
-                         
+
                     }
 
 

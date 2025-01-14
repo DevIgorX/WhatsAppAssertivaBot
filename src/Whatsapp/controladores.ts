@@ -11,7 +11,6 @@ export const consulta_telefone = async (cpf: string): Promise<string[] | string>
 
         const { data } = await instancia.get(`/localize/v3/cpf?cpf=${cpf}&idFinalidade=1`)
 
-
         const { resposta: { telefones: { moveis, fixos } } } = data
 
         //transforma cada item do array em outro array contendo o resultado dessa transformação
