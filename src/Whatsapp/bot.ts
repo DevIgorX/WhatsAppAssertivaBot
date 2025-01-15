@@ -108,7 +108,7 @@ function start(client: any) {
                             resetTimer(true)
                             return
                         }
-                        console.log('acontece aqui? 5');
+                    
 
                         await client.sendText(message.from, '*1*. Tentar novamente?\n*2*. Não, talvez mais tarde!')
                         usuarioEstdo[message.from] = 'aguardando_tente_Novamente_contato'
@@ -131,7 +131,7 @@ function start(client: any) {
                     } else {
                         const enderecoFormatado = enderecos.map(item => `${item.chave} ${item.valor}`).join('\n')
                         await client.sendText(message.from, `Segue Endereço:\n${enderecoFormatado}`)
-                        console.log('acontece aqui? 7');
+                        
 
                         const descricao = `Endereço: ${localizacao.tipoLogradouro} ${localizacao.logradouro}, ${localizacao.bairro}, ${localizacao.cidade} - ${localizacao.uf}`
                         await client.sendLocation(message.from, localizacao.latitude, localizacao.longitude, descricao)
@@ -208,9 +208,9 @@ function start(client: any) {
 
     //fecha a sessão ao encerrar
     process.on("SIGINT", async () => {
-        console.log("Encerrando bot... Fechando sessão.");
+        console.error("Encerrando bot... Fechando sessão.");
         await client.close();
-        console.log("Sessão encerrada.");
+        console.error("Sessão encerrada.");
         process.exit();
     });
 

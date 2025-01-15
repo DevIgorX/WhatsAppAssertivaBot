@@ -188,7 +188,7 @@ export const contatos_Relacionados = async (cpf: string): Promise<string | strin
         return todosContatos
 
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return 'Infelizmente, não localizamos mais telefones para este CPF. Tente novamente mais tarde.'
     }
 };
